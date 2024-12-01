@@ -16,10 +16,9 @@
         .container {
             display: flex;
             flex: 1;
-            align-items: stretch; /* Ensure both toolbox and workspace are the same height */
         }
         #toolbox, #workspace {
-            flex: 1; /* Make both sections take equal space */
+            width: 50%;
             padding: 10px;
             border: 2px solid #ccc;
             background-color: #f4f4f4;
@@ -28,7 +27,6 @@
         #toolbox {
             border-right: none;
         }
-
         .block {
             padding: 10px;
             margin: 10px;
@@ -215,22 +213,6 @@
         let draggedElement = null;
 
         const initialToolboxHTML = toolbox.innerHTML;
-
-        function syncHeights() {
-            const toolbox = document.getElementById('toolbox');
-            const workspace = document.getElementById('workspace');
-
-            // Ensure the workspace matches the toolbox height
-            const toolboxHeight = toolbox.offsetHeight;
-            workspace.style.height = `${toolboxHeight}px`;
-        }
-
-        // Call syncHeights when the content is loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            syncHeights();
-            window.addEventListener('resize', syncHeights); // Sync on window resize
-        });
-
 
         // Function to shuffle toolbox blocks
         function shuffleToolboxBlocks() {
