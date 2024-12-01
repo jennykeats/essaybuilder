@@ -212,7 +212,81 @@
         const maxScore = 40;
         let draggedElement = null;
 
+        let isTouchDragging = false; // Track if a touch drag is in progress
+
+
+
         const initialToolboxHTML = toolbox.innerHTML;
+
+
+        // mobile touch support
+        function handleTouchStart(event) {
+            if (event.touches.length !== 1) return; // Ignore multi-touch
+            const touch = event.touches[0];
+            draggedElement = event.target;
+
+            // Add visual feedback (optional)
+            draggedElement.style.opacity = '0.5';
+
+            // Track initial position for potential touchmove
+            draggedElement.dataset.startX = touch.clientX;
+            draggedElement.dataset.startY = touch.clientY;
+
+            isTouchDragging = true;
+        }
+
+        function handleTouchMove(event) {
+            if (!isTouchDragging || !draggedElement) return;
+
+            const touch = event.touches[0];
+            const offsetX = touch.clientX - draggedElement.dataset.startX;
+            const offsetY = touch.clientY - draggedElement.dataset.startY;
+
+            // Dynamically update the element's position
+            draggedElement.style.position = 'absolute';
+            draggedElement.style.zIndex = '1000'; // Bring to the front
+            draggedElement.style.left = `${touch.clientX - draggedElement.offsetWidth / 2}px`;
+            draggedElement.style.top = `${touch.clientY - draggedElement.offsetHeight / 2}px`;
+
+            event.preventDefault(); // Prevent scrolling during drag
+        }
+
+        function handleTouchEnd(event) {
+            if (!isTouchDragging || !draggedElement) return;
+
+            const touch = event.changedTouches[0];
+            const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+
+            // Reset dragged element style
+            draggedElement.style.position = '';
+            draggedElement.style.zIndex = '';
+            draggedElement.style.left = '';
+            draggedElement.style.top = '';
+            draggedElement.style.opacity = '';
+
+            // Handle drop logic
+            if (dropTarget && dropTarget.classList.contains('dropzone')) {
+                dropTarget.appendChild(draggedElement); // Move the dragged element to the drop zone
+                updateUserSequence();
+            } else {
+                // If dropped outside, return to the original position
+                const toolbox = document.getElementById('toolbox');
+                if (draggedElement.parentNode !== toolbox) toolbox.appendChild(draggedElement);
+            }
+
+            draggedElement = null;
+            isTouchDragging = false;
+        }
+
+        // Add touch event listeners to blocks
+        document.querySelectorAll('.block').forEach(block => {
+            block.addEventListener('touchstart', handleTouchStart);
+            block.addEventListener('touchmove', handleTouchMove);
+            block.addEventListener('touchend', handleTouchEnd);
+
+            // Keep existing drag-and-drop mouse events
+            block.addEventListener('dragstart', handleDragStart);
+        });
 
         // Function to shuffle toolbox blocks
         function shuffleToolboxBlocks() {
