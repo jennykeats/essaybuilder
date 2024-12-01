@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drag and Drop Interface with Variable Scores</title>
+    <title>Drag and Drop with Sequence</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -56,6 +56,9 @@
             font-size: 20px;
             text-align: center;
         }
+        .incorrect {
+            background-color: #FF5722;
+        }
     </style>
 </head>
 <body>
@@ -66,10 +69,10 @@
     <div class="container">
         <div id="toolbox">
             <h3>Toolbox</h3>
-            <div class="block" draggable="true" data-value="5">Move Forward (5 pts)</div>
-            <div class="block" draggable="true" data-value="10">Turn Left (10 pts)</div>
-            <div class="block" draggable="true" data-value="10">Turn Right (10 pts)</div>
-            <div class="block" draggable="true" data-value="20">Repeat 10 Times (20 pts)</div>
+            <div class="block" draggable="true" data-id="1" data-value="5">Move Forward</div>
+            <div class="block" draggable="true" data-id="2" data-value="10">Turn Left</div>
+            <div class="block" draggable="true" data-id="3" data-value="10">Turn Right</div>
+            <div class="block" draggable="true" data-id="4" data-value="20">Repeat 10 Times</div>
         </div>
 
         <div id="workspace">
@@ -84,6 +87,10 @@
         const blocks = document.querySelectorAll('.block');
         const dropzone = document.getElementById('dropzone');
         const scoreBox = document.getElementById('score');
+
+        // Define the correct sequence of block IDs
+        const correctSequence = ["1", "2", "3", "4"];
+        let userSequence = [];
         let score = 0;
 
         blocks.forEach(block => {
@@ -94,44 +101,63 @@
         dropzone.addEventListener('drop', handleDrop);
 
         function handleDragStart(event) {
-            // Add dragging class for styling
             event.target.classList.add('dragging');
-            // Transfer the block's content and its value
             event.dataTransfer.setData('text/plain', JSON.stringify({
                 text: event.target.innerText,
+                id: event.target.getAttribute('data-id'),
                 value: event.target.getAttribute('data-value')
             }));
         }
 
         function handleDragOver(event) {
-            // Prevent default to allow dropping
             event.preventDefault();
         }
 
         function handleDrop(event) {
             event.preventDefault();
 
-            // Parse the transferred data
             const blockData = JSON.parse(event.dataTransfer.getData('text/plain'));
-            const blockValue = parseInt(blockData.value, 10);
+            const blockId = blockData.id;
             const blockText = blockData.text;
+            const blockValue = parseInt(blockData.value, 10);
 
-            // Create a new block
+            // Add block to the workspace
             const newBlock = document.createElement('div');
             newBlock.classList.add('block');
             newBlock.innerText = blockText;
             newBlock.setAttribute('draggable', 'true');
+            newBlock.setAttribute('data-id', blockId);
             newBlock.setAttribute('data-value', blockValue);
-            
-            // Add event listener to the new block
-            newBlock.addEventListener('dragstart', handleDragStart);
 
-            // Append the new block to the bottom of the dropzone
+            newBlock.addEventListener('dragstart', handleDragStart);
             dropzone.appendChild(newBlock);
 
-            // Update the score based on the block's value
-            score += blockValue;
-            scoreBox.innerText = score;
+            // Update the user sequence
+            userSequence.push(blockId);
+
+            // Check if the sequence is still correct
+            const isCorrect = checkSequence();
+
+            // Update score based on correctness
+            if (isCorrect) {
+                score += blockValue;
+                scoreBox.innerText = score;
+                newBlock.classList.remove('incorrect');
+            } else {
+                score -= blockValue;
+                scoreBox.innerText = score < 0 ? 0 : score;
+                newBlock.classList.add('incorrect');
+            }
+        }
+
+        function checkSequence() {
+            // Compare user sequence with the correct sequence
+            for (let i = 0; i < userSequence.length; i++) {
+                if (userSequence[i] !== correctSequence[i]) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         document.addEventListener('dragend', (event) => {
