@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drag and Drop Interface with Score</title>
+    <title>Drag and Drop Interface with Variable Scores</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -66,10 +66,10 @@
     <div class="container">
         <div id="toolbox">
             <h3>Toolbox</h3>
-            <div class="block" draggable="true">Move Forward</div>
-            <div class="block" draggable="true">Turn Left</div>
-            <div class="block" draggable="true">Turn Right</div>
-            <div class="block" draggable="true">Repeat 10 Times</div>
+            <div class="block" draggable="true" data-value="5">Move Forward (5 pts)</div>
+            <div class="block" draggable="true" data-value="10">Turn Left (10 pts)</div>
+            <div class="block" draggable="true" data-value="10">Turn Right (10 pts)</div>
+            <div class="block" draggable="true" data-value="20">Repeat 10 Times (20 pts)</div>
         </div>
 
         <div id="workspace">
@@ -96,8 +96,11 @@
         function handleDragStart(event) {
             // Add dragging class for styling
             event.target.classList.add('dragging');
-            // Transfer the id or block content
-            event.dataTransfer.setData('text/plain', event.target.innerText);
+            // Transfer the block's content and its value
+            event.dataTransfer.setData('text/plain', JSON.stringify({
+                text: event.target.innerText,
+                value: event.target.getAttribute('data-value')
+            }));
         }
 
         function handleDragOver(event) {
@@ -108,20 +111,26 @@
         function handleDrop(event) {
             event.preventDefault();
 
-            const blockContent = event.dataTransfer.getData('text/plain');
+            // Parse the transferred data
+            const blockData = JSON.parse(event.dataTransfer.getData('text/plain'));
+            const blockValue = parseInt(blockData.value, 10);
+            const blockText = blockData.text;
+
+            // Create a new block
             const newBlock = document.createElement('div');
             newBlock.classList.add('block');
-            newBlock.innerText = blockContent;
+            newBlock.innerText = blockText;
             newBlock.setAttribute('draggable', 'true');
+            newBlock.setAttribute('data-value', blockValue);
             
-            // Add event listener to new block
+            // Add event listener to the new block
             newBlock.addEventListener('dragstart', handleDragStart);
 
             // Append the new block to the bottom of the dropzone
             dropzone.appendChild(newBlock);
 
-            // Update the score
-            score++;
+            // Update the score based on the block's value
+            score += blockValue;
             scoreBox.innerText = score;
         }
 
