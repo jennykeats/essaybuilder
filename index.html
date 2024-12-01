@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag and Drop Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        #toolbox, #workspace {
+            width: 50%;
+            padding: 10px;
+            border: 2px solid #ccc;
+            background-color: #f4f4f4;
+            overflow-y: auto;
+        }
+        #toolbox {
+            border-right: none;
+        }
+        .block {
+            padding: 10px;
+            margin: 10px;
+            background-color: #2196F3;
+            color: white;
+            border-radius: 4px;
+            cursor: grab;
+            user-select: none;
+        }
+        #workspace {
+            background-color: #f9f9f9;
+        }
+        .dropzone {
+            padding: 20px;
+            min-height: 400px;
+            border: 2px dashed #999;
+        }
+        .dragging {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div id="toolbox">
+        <h3>Toolbox</h3>
+        <div class="block" draggable="true">Move Forward</div>
+        <div class="block" draggable="true">Turn Left</div>
+        <div class="block" draggable="true">Turn Right</div>
+        <div class="block" draggable="true">Repeat 10 Times</div>
+    </div>
+
+    <div id="workspace">
+        <h3>Workspace</h3>
+        <div class="dropzone" id="dropzone">
+            <!-- Blocks will be dropped here -->
+        </div>
+    </div>
+
+    <script>
+        const blocks = document.querySelectorAll('.block');
+        const dropzone = document.getElementById('dropzone');
+
+        blocks.forEach(block => {
+            block.addEventListener('dragstart', handleDragStart);
+        });
+
+        dropzone.addEventListener('dragover', handleDragOver);
+        dropzone.addEventListener('drop', handleDrop);
+
+        function handleDragStart(event) {
+            // Add dragging class for styling
+            event.target.classList.add('dragging');
+            // Transfer the id or block content
+            event.dataTransfer.setData('text/plain', event.target.innerText);
+        }
+
+        function handleDragOver(event) {
+            // Prevent default to allow dropping
+            event.preventDefault();
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+
+            const blockContent = event.dataTransfer.getData('text/plain');
+            const newBlock = document.createElement('div');
+            newBlock.classList.add('block');
+            newBlock.innerText = blockContent;
+            newBlock.setAttribute('draggable', 'true');
+            
+            // Add event listener to new block
+            newBlock.addEventListener('dragstart', handleDragStart);
+
+            dropzone.appendChild(newBlock);
+        }
+
+        document.addEventListener('dragend', (event) => {
+            event.target.classList.remove('dragging');
+        });
+    </script>
+</body>
+</html>
