@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag and Drop with Fireworks</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            display: flex;
+            flex: 1;
+        }
+        #toolbox, #workspace {
+            width: 50%;
+            padding: 10px;
+            border: 2px solid #ccc;
+            background-color: #f4f4f4;
+            overflow-y: auto;
+        }
+        #toolbox {
+            border-right: none;
+        }
+        .block {
+            padding: 10px;
+            margin: 10px;
+            background-color: #2196F3;
+            color: white;
+            border-radius: 4px;
+            cursor: grab;
+            user-select: none;
+        }
+        #workspace {
+            background-color: #f9f9f9;
+        }
+        .dropzone {
+            padding: 20px;
+            min-height: 400px;
+            border: 2px dashed #999;
+            display: flex;
+            flex-direction: column;
+        }
+        #score-box {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            font-size: 20px;
+            text-align: center;
+        }
+        .button-container {
+            margin: 10px;
+        }
+        .action-button {
+            margin: 5px;
+            padding: 10px;
+            background-color: #FF5722;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .action-button:hover {
+            background-color: #E64A19;
+        }
+        .action-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #congratulations {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 20px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            text-align: center;
+            z-index: 1000;
+            font-size: 24px;
+            color: #333;
+        }
+        /* Fireworks animation */
+        .firework {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: red;
+            animation: firework-animation 1s ease-out infinite;
+            opacity: 0;
+        }
+        .firework:nth-child(1) {
+            top: 50%;
+            left: 50%;
+            animation-delay: 0s;
+            background: #FF5722;
+        }
+        .firework:nth-child(2) {
+            top: 50%;
+            left: 60%;
+            animation-delay: 0.2s;
+            background: #FFEB3B;
+        }
+        .firework:nth-child(3) {
+            top: 60%;
+            left: 55%;
+            animation-delay: 0.4s;
+            background: #4CAF50;
+        }
+        .firework:nth-child(4) {
+            top: 45%;
+            left: 55%;
+            animation-delay: 0.6s;
+            background: #2196F3;
+        }
+        .firework:nth-child(5) {
+            top: 55%;
+            left: 45%;
+            animation-delay: 0.8s;
+            background: #FFC107;
+        }
+        @keyframes firework-animation {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(3);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="score-box">
+        Score: <span id="score">0</span>
+    </div>
+    <div class="button-container">
+        <button id="undo-button" class="action-button">Undo Last Block</button>
+        <button id="restart-button" class="action-button">Restart</button>
+    </div>
+
+    <div class="container">
+        <div id="toolbox">
+            <h3>Toolbox</h3>
+            <div class="block" draggable="true" data-id="1" data-value="5">111111</div>
+            <div class="block" draggable="true" data-id="2" data-value="10">2222222</div>
+            <div class="block" draggable="true" data-id="3" data-value="10">33333333</div>
+            <div class="block" draggable="true" data-id="4" data-value="20">44444444</div>
+        </div>
+
+        <div id="workspace">
+            <h3>Workspace</h3>
+            <div class="dropzone" id="dropzone"></div>
+        </div>
+    </div>
+
+    <!-- Congratulations Message -->
+    <div id="congratulations">
+        <h1>Congratulations!</h1>
+        <p>You achieved the maximum score!</p>
+        <div class="firework-container">
+            <div class="firework"></div>
+            <div class="firework"></div>
+            <div class="firework"></div>
+            <div class="firework"></div>
+            <div class="firework"></div>
+        </div>
+        <button onclick="restartGame()" class="action-button">Restart Game</button>
+        <button onclick="loadNextLevel()" class="action-button">Next Level</button>
+    </div>
+
+    <script>
+        const toolbox = document.getElementById('toolbox');
+        const dropzone = document.getElementById('dropzone');
+        const scoreBox = document.getElementById('score');
+        const undoButton = document.getElementById('undo-button');
+        const restartButton = document.getElementById('restart-button');
+        const congratulationsBox = document.getElementById('congratulations');
+
+        const correctSequence = ["1", "2", "3", "4"];
+        let score = 0;
+        let userSequence = [];
+        const maxScore = 40;
+        let draggedElement = null;
+
+        const initialToolboxHTML = toolbox.innerHTML;
+
+        function handleDragStart(event) {
+            draggedElement = event.target;
+            event.dataTransfer.effectAllowed = "move";
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "move";
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+
+            if (event.target === dropzone || event.target.classList.contains('block')) {
+                if (draggedElement && draggedElement.parentNode === dropzone) {
+                    // Move within workspace
+                    const referenceNode = event.target.classList.contains('block') ? event.target : null;
+                    dropzone.insertBefore(draggedElement, referenceNode);
+                } else if (draggedElement && draggedElement.parentNode === toolbox) {
+                    // Add from toolbox to workspace
+                    const blockHTML = draggedElement.outerHTML;
+                    const newBlock = document.createElement('div');
+                    newBlock.innerHTML = blockHTML;
+                    const blockElement = newBlock.firstChild;
+
+                    blockElement.addEventListener('dragstart', handleDragStart);
+                    blockElement.setAttribute('draggable', 'true');
+                    dropzone.appendChild(blockElement);
+
+                    const blockId = blockElement.getAttribute('data-id');
+                    userSequence.push(blockId);
+                    toolbox.querySelector(`[data-id="${blockId}"]`)?.remove();
+                }
+                updateUserSequence();
+                checkForMaxScore();
+            }
+        }
+
+        function handleUndo() {
+            const lastBlock = dropzone.lastChild;
+            if (!lastBlock) return;
+
+            const blockId = lastBlock.getAttribute('data-id');
+            userSequence.pop();
+            dropzone.removeChild(lastBlock);
+
+            const restoredBlock = document.createElement('div');
+            restoredBlock.classList.add('block');
+            restoredBlock.innerText = lastBlock.innerText;
+            restoredBlock.setAttribute('data-id', blockId);
+            restoredBlock.setAttribute('data-value', lastBlock.getAttribute('data-value'));
+            restoredBlock.setAttribute('draggable', 'true');
+            restoredBlock.addEventListener('dragstart', handleDragStart);
+
+            toolbox.appendChild(restoredBlock);
+
+            updateUserSequence();
+        }
+
+        function updateScore() {
+            score = 0;
+            userSequence.forEach((blockId, index) => {
+                const correctIndex = correctSequence.indexOf(blockId);
+
+                if (correctIndex === index) {
+                    score += 10;
+                } else if (correctIndex !== -1) {
+                    const distance = Math.abs(correctIndex - index);
+                    if (distance === 1) {
+                        score += 5;
+                    } else if (distance > 1) {
+                        score += 1;
+                    }
+                } else {
+                    score -= 5;
+                }
+            });
+
+            score = Math.max(0, score);
+            scoreBox.innerText = score;
+        }
+
+        function updateUserSequence() {
+            userSequence = Array.from(dropzone.children).map(block => block.getAttribute('data-id'));
+            updateScore();
+        }
+
+        function checkForMaxScore() {
+            if (score === maxScore) {
+                showCongratulations();
+            }
+        }
+
+        function handleRestart() {
+            dropzone.innerHTML = '';
+            userSequence = [];
+            score = 0;
+            scoreBox.innerText = score;
+
+            toolbox.innerHTML = initialToolboxHTML;
+
+            toolbox.querySelectorAll('.block').forEach(block => {
+                block.addEventListener('dragstart', handleDragStart);
+                block.setAttribute('draggable', 'true');
+            });
+
+            congratulationsBox.style.display = 'none';
+            enableButtons();
+        }
+
+        function showCongratulations() {
+            congratulationsBox.style.display = 'block';
+            disableButtons();
+        }
+
+        function disableButtons() {
+            undoButton.disabled = true;
+            restartButton.disabled = true;
+        }
+
+        function enableButtons() {
+            undoButton.disabled = false;
+            restartButton.disabled = false;
+        }
+
+        function restartGame() {
+            location.reload();
+        }
+
+        function loadNextLevel() {
+            window.location.href = 'level2.html';
+        }
+
+        toolbox.addEventListener('dragover', handleDragOver);
+        dropzone.addEventListener('dragover', handleDragOver);
+        dropzone.addEventListener('drop', handleDrop);
+
+        undoButton.addEventListener('click', handleUndo);
+        restartButton.addEventListener('click', handleRestart);
+
+        document.querySelectorAll('.block').forEach(block => {
+            block.addEventListener('dragstart', handleDragStart);
+            block.setAttribute('draggable', 'true');
+        });
+    </script>
+</body>
+</html>

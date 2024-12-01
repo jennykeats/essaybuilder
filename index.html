@@ -3,199 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drag and Drop with Sequence and Undo</title>
+    <title>Splash Screen</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
             margin: 0;
             padding: 0;
-        }
-        .container {
             display: flex;
-            flex: 1;
-        }
-        #toolbox, #workspace {
-            width: 50%;
-            padding: 10px;
-            border: 2px solid #ccc;
-            background-color: #f4f4f4;
-            overflow-y: auto;
-        }
-        #toolbox {
-            border-right: none;
-        }
-        .block {
-            padding: 10px;
-            margin: 10px;
-            background-color: #2196F3;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #282c34;
+            font-family: Arial, sans-serif;
             color: white;
-            border-radius: 4px;
-            cursor: grab;
-            user-select: none;
+            overflow: hidden;
         }
-        #workspace {
-            background-color: #f9f9f9;
-        }
-        .dropzone {
-            padding: 20px;
-            min-height: 400px;
-            border: 2px dashed #999;
-            display: flex;
-            flex-direction: column;
-        }
-        .dragging {
-            opacity: 0.5;
-        }
-        #score-box {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px;
-            font-size: 20px;
+
+        #splash-container {
             text-align: center;
         }
-        #undo-button {
-            margin: 10px;
-            padding: 10px;
-            background-color: #FF5722;
+
+        h1 {
+            margin: 0;
+            font-size: 3em;
+            animation: fadeIn 2s;
+        }
+
+        .pyramid-container {
+            position: relative;
+            margin-top: 20px;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .row {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .block {
+            width: 50px;
+            height: 20px;
+            margin: 0 5px;
+            opacity: 0;
+        }
+
+        /* Animations for blocks */
+        @keyframes slideInFromLeft {
+            0% {
+                opacity: 0;
+                transform: translateX(-500px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInFromRight {
+            0% {
+                opacity: 0;
+                transform: translateX(500px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .start-button {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 15px 30px;
+            font-size: 18px;
             color: white;
+            background-color: #4CAF50;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            transition: background-color 0.3s ease-in-out;
         }
-        #undo-button:hover {
-            background-color: #E64A19;
-        }
-        .incorrect {
-            background-color: #FF5722;
+
+        .start-button:hover {
+            background-color: #45A049;
         }
     </style>
 </head>
 <body>
-    <div id="score-box">
-        Score: <span id="score">0</span>
-    </div>
-    <button id="undo-button">Undo Last Block</button>
-
-    <div class="container">
-        <div id="toolbox">
-            <h3>Toolbox</h3>
-            <div class="block" draggable="true" data-id="1" data-value="5">Move Forward</div>
-            <div class="block" draggable="true" data-id="2" data-value="10">Turn Left</div>
-            <div class="block" draggable="true" data-id="3" data-value="10">Turn Right</div>
-            <div class="block" draggable="true" data-id="4" data-value="20">Repeat 10 Times</div>
-        </div>
-
-        <div id="workspace">
-            <h3>Workspace</h3>
-            <div class="dropzone" id="dropzone">
-                <!-- Blocks will be dropped here -->
+    <div id="splash-container">
+        <h1>Multimedia Essay Trainer</h1>
+        <div class="pyramid-container">
+            <div class="row">
+                <div class="block"></div>
+            </div>
+            <div class="row">
+                <div class="block"></div>
+                <div class="block"></div>
+            </div>
+            <div class="row">
+                <div class="block"></div>
+                <div class="block"></div>
+                <div class="block"></div>
+            </div>
+            <div class="row">
+                <div class="block"></div>
+                <div class="block"></div>
+                <div class="block"></div>
+                <div class="block"></div>
             </div>
         </div>
+        <button class="start-button" onclick="startGame()">Start Training</button>
     </div>
 
     <script>
-        const blocks = document.querySelectorAll('.block');
-        const dropzone = document.getElementById('dropzone');
-        const scoreBox = document.getElementById('score');
-        const undoButton = document.getElementById('undo-button');
+        // Array of theme colors from the game
+        const themeColors = ["#FF5722", "#FFEB3B", "#4CAF50", "#2196F3", "#FFC107"];
 
-        // Define the correct sequence of block IDs
-        const correctSequence = ["1", "2", "3", "4"];
-        let userSequence = [];
-        let score = 0;
+        // Assign random colors and animations to blocks
+        function assignRandomColorsAndAnimations() {
+            const blocks = document.querySelectorAll('.block');
+            blocks.forEach(block => {
+                // Assign a random color
+                const randomColor = themeColors[Math.floor(Math.random() * themeColors.length)];
+                block.style.backgroundColor = randomColor;
 
-        blocks.forEach(block => {
-            block.addEventListener('dragstart', handleDragStart);
-        });
-
-        dropzone.addEventListener('dragover', handleDragOver);
-        dropzone.addEventListener('drop', handleDrop);
-
-        function handleDragStart(event) {
-            event.target.classList.add('dragging');
-            event.dataTransfer.setData('text/plain', JSON.stringify({
-                text: event.target.innerText,
-                id: event.target.getAttribute('data-id'),
-                value: event.target.getAttribute('data-value')
-            }));
+                // Randomly choose sliding direction
+                const randomDirection = Math.random() > 0.5 ? 'slideInFromLeft' : 'slideInFromRight';
+                block.style.animationName = randomDirection;
+            });
         }
 
-        function handleDragOver(event) {
-            event.preventDefault();
+        // Animate rows and blocks sequentially, starting from the bottom row
+        function animateRowsSequentially() {
+            const rows = Array.from(document.querySelectorAll('.row')).reverse(); // Reverse order of rows
+            rows.forEach((row, rowIndex) => {
+                // Delay the row animation based on the reversed row index
+                const delay = rowIndex * 1.2; // Start with the bottom-most row
+                const blocks = row.querySelectorAll('.block');
+                blocks.forEach((block, blockIndex) => {
+                    block.style.animationDelay = `${delay + blockIndex * 0.2}s`;
+                    block.style.animationDuration = '1s';
+                    block.style.animationFillMode = 'forwards';
+                });
+            });
         }
 
-        function handleDrop(event) {
-            event.preventDefault();
-
-            const blockData = JSON.parse(event.dataTransfer.getData('text/plain'));
-            const blockId = blockData.id;
-            const blockText = blockData.text;
-            const blockValue = parseInt(blockData.value, 10);
-
-            // Add block to the workspace
-            const newBlock = document.createElement('div');
-            newBlock.classList.add('block');
-            newBlock.innerText = blockText;
-            newBlock.setAttribute('draggable', 'true');
-            newBlock.setAttribute('data-id', blockId);
-            newBlock.setAttribute('data-value', blockValue);
-
-            newBlock.addEventListener('dragstart', handleDragStart);
-            dropzone.appendChild(newBlock);
-
-            // Add block to user sequence
-            userSequence.push({ id: blockId, value: blockValue, element: newBlock });
-
-            // Update sequence and score
-            updateSequenceAndScore();
+        // Start the game by navigating to level1.html
+        function startGame() {
+            window.location.href = "level1.html";
         }
 
-        function updateSequenceAndScore() {
-            // Check sequence correctness
-            const isCorrect = checkSequence();
-
-            // Update score based on correctness
-            if (isCorrect) {
-                score = userSequence.reduce((sum, block) => sum + parseInt(block.value, 10), 0);
-            } else {
-                // Penalize incorrect sequence (optional)
-                score = 0;
-            }
-
-            scoreBox.innerText = score;
-        }
-
-        function checkSequence() {
-            // Compare user sequence with the correct sequence
-            for (let i = 0; i < userSequence.length; i++) {
-                if (userSequence[i].id !== correctSequence[i]) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        function handleUndo() {
-            if (userSequence.length > 0) {
-                // Remove the last block from the sequence
-                const lastBlock = userSequence.pop();
-
-                // Remove the block from the workspace
-                lastBlock.element.remove();
-
-                // Update sequence and score
-                updateSequenceAndScore();
-            }
-        }
-
-        undoButton.addEventListener('click', handleUndo);
-
-        document.addEventListener('dragend', (event) => {
-            event.target.classList.remove('dragging');
+        // Assign colors and animate rows after DOM content is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            assignRandomColorsAndAnimations();
+            animateRowsSequentially();
         });
     </script>
 </body>
