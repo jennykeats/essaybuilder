@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drag and Drop with Fireworks</title>
+    <title>Multimedia Essay Trainer - Level 1</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -72,6 +72,11 @@
         .action-button:disabled {
             background-color: #ccc;
             cursor: not-allowed;
+        }
+        .action-button svg {
+            vertical-align: middle;
+            margin-right: 8px;
+            fill: white;
         }
         #congratulations {
             display: none;
@@ -142,23 +147,28 @@
 </head>
 <body>
     <div id="score-box">
-        Score: <span id="score">0</span>
+        Level 1 - score: <span id="score">0</span>
     </div>
     <div class="button-container">
         <button id="undo-button" class="action-button">Undo Last Block</button>
         <button id="restart-button" class="action-button">Restart</button>
+        <p>Drag the blue essay blocks below in an order so that you can build the most logical response to the HSC style question.</p>
     </div>
 
     <div class="container">
         <div id="toolbox">
             <h3>Toolbox</h3>
-            <div class="block" draggable="true" data-id="1" data-value="5">Designers should use vectors when creating logos because vectors ensure scalability without losing quality.</div>
+            
+            <div class="block" draggable="true" data-id="1" data-value="5">Multimedia designers should use vectors when creating logos because vectors ensure scalability without losing quality.</div>
             <div class="block" draggable="true" data-id="2" data-value="10">Unlike raster graphics, which are composed of pixels, vector graphics are based on mathematical equations that define shapes and lines. This allows them to be resized infinitely without distortion or pixelation.</div>
             <div class="block" draggable="true" data-id="3" data-value="10">For instance, if a logo is designed as a raster image and later needs to be printed on a large billboard, the image may appear blurry and unprofessional. However, a vector logo retains its sharpness and clarity, whether displayed on a business card or a large advertisement. This adaptability is crucial for maintaining a brand's professional image across various media.</div>
             <div class="block" draggable="true" data-id="4" data-value="20">Therefore, using vectors in logo design is essential for creating versatile and high-quality branding assets that can meet the diverse needs of modern marketing and advertising.</div>
         </div>
 
+
         <div id="workspace">
+            <h3>HSC Style Question</h3>
+            <b></b>Explain why Multimedia designers should use vectors when designing logos.</b>
             <h3>Workspace</h3>
             <div class="dropzone" id="dropzone"></div>
         </div>
@@ -175,7 +185,16 @@
             <div class="firework"></div>
             <div class="firework"></div>
         </div>
-        <button onclick="restartGame()" class="action-button">Restart Game</button>
+        <button onclick="goHome()" class="action-button">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="20px" height="20px">
+                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+            </svg>
+        </button>
+        <button onclick="restartGame()" class="action-button">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20px" height="20px" fill="white" stroke="white" stroke-width="2">
+                <path d="M12 2V6C7.03 6 3 10.03 3 15C3 17.21 3.8 19.21 5.06 20.71L6.48 19.3C5.57 18.22 5 16.69 5 15C5 11.13 8.13 8 12 8V12L16 8L12 4V2M17.5 5.5L16.09 6.91C17.11 7.83 17.75 9.18 17.91 10.64L19.45 10.36C19.23 8.53 18.4 6.88 17.5 5.5M18.91 14.36L17.36 14.64C17.59 16.47 16.76 18.12 15.86 19.5L17.27 20.91C18.5 19.27 19.09 17.16 18.91 14.36Z"/>
+            </svg>            
+        </button>
         <button onclick="loadNextLevel()" class="action-button">Next Level</button>
     </div>
 
@@ -194,6 +213,14 @@
         let draggedElement = null;
 
         const initialToolboxHTML = toolbox.innerHTML;
+
+        // Function to shuffle toolbox blocks
+        function shuffleToolboxBlocks() {
+            const blocks = Array.from(toolbox.querySelectorAll('.block'));
+            const shuffledBlocks = blocks.sort(() => Math.random() - 0.5);
+            toolbox.innerHTML = '';
+            shuffledBlocks.forEach(block => toolbox.appendChild(block));
+        }
 
         function handleDragStart(event) {
             draggedElement = event.target;
@@ -301,6 +328,7 @@
                 block.setAttribute('draggable', 'true');
             });
 
+            shuffleToolboxBlocks(); // Shuffle the blocks on restart
             congratulationsBox.style.display = 'none';
             enableButtons();
         }
@@ -328,12 +356,20 @@
             window.location.href = 'level2.html';
         }
 
+        function goHome() {
+            window.location.href = "index.html";
+        }
+
         toolbox.addEventListener('dragover', handleDragOver);
         dropzone.addEventListener('dragover', handleDragOver);
         dropzone.addEventListener('drop', handleDrop);
 
         undoButton.addEventListener('click', handleUndo);
         restartButton.addEventListener('click', handleRestart);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            shuffleToolboxBlocks(); // Shuffle blocks on page load
+        });
 
         document.querySelectorAll('.block').forEach(block => {
             block.addEventListener('dragstart', handleDragStart);

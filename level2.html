@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drag and Drop with Fireworks</title>
+    <title>Multimedia Essay Trainer - Level 1</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -72,6 +72,11 @@
         .action-button:disabled {
             background-color: #ccc;
             cursor: not-allowed;
+        }
+        .action-button svg {
+            vertical-align: middle;
+            margin-right: 8px;
+            fill: white;
         }
         #congratulations {
             display: none;
@@ -142,23 +147,32 @@
 </head>
 <body>
     <div id="score-box">
-        Score: <span id="score">0</span>
+        Level 2 - score: <span id="score">0</span>
     </div>
     <div class="button-container">
         <button id="undo-button" class="action-button">Undo Last Block</button>
         <button id="restart-button" class="action-button">Restart</button>
+        <p>Drag the blue essay blocks below in an order so that you can build the most logical response to the HSC style question.</p>
     </div>
 
     <div class="container">
         <div id="toolbox">
             <h3>Toolbox</h3>
-            <div class="block" draggable="true" data-id="1" data-value="5">111111</div>
-            <div class="block" draggable="true" data-id="2" data-value="10">2222222</div>
-            <div class="block" draggable="true" data-id="3" data-value="10">33333333</div>
-            <div class="block" draggable="true" data-id="4" data-value="20">44444444</div>
+            
+            <div class="block" draggable="true" data-id="1" data-value="5">Mass Production and Automation in the multimedia sector bring both advantages and disadvantages.</div>
+            <div class="block" draggable="true" data-id="2" data-value="10">Over time, numerous industries have transitioned or are expected to transition their manufacturing processes toward mass production and automation due to enhanced productivity.</div>
+            <div class="block" draggable="true" data-id="3" data-value="10">Automation is widely adopted in industries for its ability to boost productivity and lower long-term costs through advanced technological systems. For example, companies like Tesla employ robotic systems in manufacturing to produce their products. Tesla also leverages mass production techniques to align its output with market demands, thereby cutting labor costs and enhancing efficiency.</div>
+            <div class="block" draggable="true" data-id="4" data-value="10">Additionally, automation improves quality assurance, as robots consistently produce items with precision. Mass production allows companies to manufacture high-demand components, such as graphics cards, effectively reducing waiting times for both consumers and employees.</div>
+            <div class="block" draggable="true" data-id="5" data-value="10">Nonetheless, mass production and automation can have adverse effects on the multimedia sector. Automation driven by artificial intelligence (AI) can now independently create products such as video games, significantly decreasing the reliance on human labor. This shift can lead to job displacement and increased unemployment rates. </div>
+            <div class="block" draggable="true" data-id="6" data-value="10">Moreover, producing goods without accurately forecasting demand can result in an oversupply of products. Excessive inventory leads to financial losses and inefficiencies as unsold items accumulate.</div>
+            <div class="block" draggable="true" data-id="7" data-value="10">Furthermore, automation systems, being dependent on complex technology, are prone to breakdowns or malfunctions, which can interrupt operations and compromise sustainability.</div>
+            <div class="block" draggable="true" data-id="8" data-value="5">While mass production and automation have certain drawbacks, they also offer substantial opportunities for improving efficiency and reducing long-term production costs. These methods remain essential tools for shaping the future of the multimedia industry.</div>
         </div>
 
+
         <div id="workspace">
+            <h3>HSC Style Question</h3>
+            <b></b>Discuss the impact of mass production and automation on the Multimedia industry.</b>
             <h3>Workspace</h3>
             <div class="dropzone" id="dropzone"></div>
         </div>
@@ -175,7 +189,18 @@
             <div class="firework"></div>
             <div class="firework"></div>
         </div>
-        <button onclick="restartGame()" class="action-button">Restart Game</button>
+        <button onclick="goHome()" class="action-button">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="20px" height="20px">
+                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+            </svg>
+        </button>
+       
+        <button onclick="restartGame()" class="action-button">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20px" height="20px" fill="white" stroke="white" stroke-width="2">
+                <path d="M12 2V6C7.03 6 3 10.03 3 15C3 17.21 3.8 19.21 5.06 20.71L6.48 19.3C5.57 18.22 5 16.69 5 15C5 11.13 8.13 8 12 8V12L16 8L12 4V2M17.5 5.5L16.09 6.91C17.11 7.83 17.75 9.18 17.91 10.64L19.45 10.36C19.23 8.53 18.4 6.88 17.5 5.5M18.91 14.36L17.36 14.64C17.59 16.47 16.76 18.12 15.86 19.5L17.27 20.91C18.5 19.27 19.09 17.16 18.91 14.36Z"/>
+            </svg>            
+        </button>
+
         <button onclick="loadNextLevel()" class="action-button">Next Level</button>
     </div>
 
@@ -187,13 +212,21 @@
         const restartButton = document.getElementById('restart-button');
         const congratulationsBox = document.getElementById('congratulations');
 
-        const correctSequence = ["1", "2", "3", "4"];
+        const correctSequence = ["1", "2", "3", "4", "5","6", "7", "8"];
         let score = 0;
         let userSequence = [];
-        const maxScore = 40;
+        const maxScore = 80;
         let draggedElement = null;
 
         const initialToolboxHTML = toolbox.innerHTML;
+
+        // Function to shuffle toolbox blocks
+        function shuffleToolboxBlocks() {
+            const blocks = Array.from(toolbox.querySelectorAll('.block'));
+            const shuffledBlocks = blocks.sort(() => Math.random() - 0.5);
+            toolbox.innerHTML = '';
+            shuffledBlocks.forEach(block => toolbox.appendChild(block));
+        }
 
         function handleDragStart(event) {
             draggedElement = event.target;
@@ -301,6 +334,7 @@
                 block.setAttribute('draggable', 'true');
             });
 
+            shuffleToolboxBlocks(); // Shuffle the blocks on restart
             congratulationsBox.style.display = 'none';
             enableButtons();
         }
@@ -328,12 +362,20 @@
             window.location.href = 'level2.html';
         }
 
+        function goHome() {
+            window.location.href = "index.html";
+        }
+
         toolbox.addEventListener('dragover', handleDragOver);
         dropzone.addEventListener('dragover', handleDragOver);
         dropzone.addEventListener('drop', handleDrop);
 
         undoButton.addEventListener('click', handleUndo);
         restartButton.addEventListener('click', handleRestart);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            shuffleToolboxBlocks(); // Shuffle blocks on page load
+        });
 
         document.querySelectorAll('.block').forEach(block => {
             block.addEventListener('dragstart', handleDragStart);
