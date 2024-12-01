@@ -16,9 +16,10 @@
         .container {
             display: flex;
             flex: 1;
+            align-items: stretch; /* Ensure both toolbox and workspace are the same height */
         }
         #toolbox, #workspace {
-            width: 50%;
+            flex: 1; /* Make both sections take equal space */
             padding: 10px;
             border: 2px solid #ccc;
             background-color: #f4f4f4;
@@ -27,6 +28,7 @@
         #toolbox {
             border-right: none;
         }
+
         .block {
             padding: 10px;
             margin: 10px;
@@ -78,6 +80,71 @@
             margin-right: 8px;
             fill: white;
         }
+        #congratulations {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 20px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            text-align: center;
+            z-index: 1000;
+            font-size: 24px;
+            color: #333;
+        }
+        /* Fireworks animation */
+        .firework {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: red;
+            animation: firework-animation 1s ease-out infinite;
+            opacity: 0;
+        }
+        .firework:nth-child(1) {
+            top: 50%;
+            left: 50%;
+            animation-delay: 0s;
+            background: #FF5722;
+        }
+        .firework:nth-child(2) {
+            top: 50%;
+            left: 60%;
+            animation-delay: 0.2s;
+            background: #FFEB3B;
+        }
+        .firework:nth-child(3) {
+            top: 60%;
+            left: 55%;
+            animation-delay: 0.4s;
+            background: #4CAF50;
+        }
+        .firework:nth-child(4) {
+            top: 45%;
+            left: 55%;
+            animation-delay: 0.6s;
+            background: #2196F3;
+        }
+        .firework:nth-child(5) {
+            top: 55%;
+            left: 45%;
+            animation-delay: 0.8s;
+            background: #FFC107;
+        }
+        @keyframes firework-animation {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(3);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -93,11 +160,13 @@
     <div class="container">
         <div id="toolbox">
             <h3>Toolbox</h3>
+            
             <div class="block" draggable="true" data-id="1" data-value="5">Multimedia designers should use vectors when creating logos because vectors ensure scalability without losing quality.</div>
             <div class="block" draggable="true" data-id="2" data-value="10">Unlike raster graphics, which are composed of pixels, vector graphics are based on mathematical equations that define shapes and lines. This allows them to be resized infinitely without distortion or pixelation.</div>
             <div class="block" draggable="true" data-id="3" data-value="10">For instance, if a logo is designed as a raster image and later needs to be printed on a large billboard, the image may appear blurry and unprofessional. However, a vector logo retains its sharpness and clarity, whether displayed on a business card or a large advertisement. This adaptability is crucial for maintaining a brand's professional image across various media.</div>
             <div class="block" draggable="true" data-id="4" data-value="20">Therefore, using vectors in logo design is essential for creating versatile and high-quality branding assets that can meet the diverse needs of modern marketing and advertising.</div>
         </div>
+
 
         <div id="workspace">
             <h3>HSC Style Question</h3>
@@ -107,8 +176,29 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/gh/Bernardo-Castilho/DragDropTouch/DragDropTouch.js"></script>
-
+    <!-- Congratulations Message -->
+    <div id="congratulations">
+        <h1>Congratulations!</h1>
+        <p>You achieved the maximum score!</p>
+        <div class="firework-container">
+            <div class="firework"></div>
+            <div class="firework"></div>
+            <div class="firework"></div>
+            <div class="firework"></div>
+            <div class="firework"></div>
+        </div>
+        <button onclick="goHome()" class="action-button">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="20px" height="20px">
+                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+            </svg>
+        </button>
+        <button onclick="restartGame()" class="action-button">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20px" height="20px" fill="white" stroke="white" stroke-width="2">
+                <path d="M12 2V6C7.03 6 3 10.03 3 15C3 17.21 3.8 19.21 5.06 20.71L6.48 19.3C5.57 18.22 5 16.69 5 15C5 11.13 8.13 8 12 8V12L16 8L12 4V2M17.5 5.5L16.09 6.91C17.11 7.83 17.75 9.18 17.91 10.64L19.45 10.36C19.23 8.53 18.4 6.88 17.5 5.5M18.91 14.36L17.36 14.64C17.59 16.47 16.76 18.12 15.86 19.5L17.27 20.91C18.5 19.27 19.09 17.16 18.91 14.36Z"/>
+            </svg>            
+        </button>
+        <button onclick="loadNextLevel()" class="action-button">Next Level</button>
+    </div>
 
     <script>
         const toolbox = document.getElementById('toolbox');
@@ -116,10 +206,39 @@
         const scoreBox = document.getElementById('score');
         const undoButton = document.getElementById('undo-button');
         const restartButton = document.getElementById('restart-button');
+        const congratulationsBox = document.getElementById('congratulations');
+
         const correctSequence = ["1", "2", "3", "4"];
         let score = 0;
         let userSequence = [];
+        const maxScore = 40;
         let draggedElement = null;
+
+        const initialToolboxHTML = toolbox.innerHTML;
+
+        function syncHeights() {
+            const toolbox = document.getElementById('toolbox');
+            const workspace = document.getElementById('workspace');
+
+            // Ensure the workspace matches the toolbox height
+            const toolboxHeight = toolbox.offsetHeight;
+            workspace.style.height = `${toolboxHeight}px`;
+        }
+
+        // Call syncHeights when the content is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            syncHeights();
+            window.addEventListener('resize', syncHeights); // Sync on window resize
+        });
+
+
+        // Function to shuffle toolbox blocks
+        function shuffleToolboxBlocks() {
+            const blocks = Array.from(toolbox.querySelectorAll('.block'));
+            const shuffledBlocks = blocks.sort(() => Math.random() - 0.5);
+            toolbox.innerHTML = '';
+            shuffledBlocks.forEach(block => toolbox.appendChild(block));
+        }
 
         function handleDragStart(event) {
             draggedElement = event.target;
@@ -133,10 +252,74 @@
 
         function handleDrop(event) {
             event.preventDefault();
-            if (event.target.classList.contains('dropzone')) {
-                event.target.appendChild(draggedElement);
+
+            if (event.target === dropzone || event.target.classList.contains('block')) {
+                if (draggedElement && draggedElement.parentNode === dropzone) {
+                    // Move within workspace
+                    const referenceNode = event.target.classList.contains('block') ? event.target : null;
+                    dropzone.insertBefore(draggedElement, referenceNode);
+                } else if (draggedElement && draggedElement.parentNode === toolbox) {
+                    // Add from toolbox to workspace
+                    const blockHTML = draggedElement.outerHTML;
+                    const newBlock = document.createElement('div');
+                    newBlock.innerHTML = blockHTML;
+                    const blockElement = newBlock.firstChild;
+
+                    blockElement.addEventListener('dragstart', handleDragStart);
+                    blockElement.setAttribute('draggable', 'true');
+                    dropzone.appendChild(blockElement);
+
+                    const blockId = blockElement.getAttribute('data-id');
+                    userSequence.push(blockId);
+                    toolbox.querySelector(`[data-id="${blockId}"]`)?.remove();
+                }
                 updateUserSequence();
+                checkForMaxScore();
             }
+        }
+
+        function handleUndo() {
+            const lastBlock = dropzone.lastChild;
+            if (!lastBlock) return;
+
+            const blockId = lastBlock.getAttribute('data-id');
+            userSequence.pop();
+            dropzone.removeChild(lastBlock);
+
+            const restoredBlock = document.createElement('div');
+            restoredBlock.classList.add('block');
+            restoredBlock.innerText = lastBlock.innerText;
+            restoredBlock.setAttribute('data-id', blockId);
+            restoredBlock.setAttribute('data-value', lastBlock.getAttribute('data-value'));
+            restoredBlock.setAttribute('draggable', 'true');
+            restoredBlock.addEventListener('dragstart', handleDragStart);
+
+            toolbox.appendChild(restoredBlock);
+
+            updateUserSequence();
+        }
+
+        function updateScore() {
+            score = 0;
+            userSequence.forEach((blockId, index) => {
+                const correctIndex = correctSequence.indexOf(blockId);
+
+                if (correctIndex === index) {
+                    score += 10;
+                } else if (correctIndex !== -1) {
+                    const distance = Math.abs(correctIndex - index);
+                    if (distance === 1) {
+                        score += 5;
+                    } else if (distance > 1) {
+                        score += 1;
+                    }
+                } else {
+                    score -= 5;
+                }
+            });
+
+            score = Math.max(0, score);
+            scoreBox.innerText = score;
         }
 
         function updateUserSequence() {
@@ -144,26 +327,72 @@
             updateScore();
         }
 
-        function updateScore() {
-            score = 0;
-            userSequence.forEach((blockId, index) => {
-                const correctIndex = correctSequence.indexOf(blockId);
-                if (correctIndex === index) {
-                    score += 10;
-                } else {
-                    score += 5; // Partial credit for incorrect position
-                }
-            });
-            scoreBox.textContent = score;
+        function checkForMaxScore() {
+            if (score === maxScore) {
+                showCongratulations();
+            }
         }
 
-        document.querySelectorAll('.block').forEach(block => {
-            block.addEventListener('dragstart', handleDragStart);
-        });
+        function handleRestart() {
+            dropzone.innerHTML = '';
+            userSequence = [];
+            score = 0;
+            scoreBox.innerText = score;
+
+            toolbox.innerHTML = initialToolboxHTML;
+
+            toolbox.querySelectorAll('.block').forEach(block => {
+                block.addEventListener('dragstart', handleDragStart);
+                block.setAttribute('draggable', 'true');
+            });
+
+            shuffleToolboxBlocks(); // Shuffle the blocks on restart
+            congratulationsBox.style.display = 'none';
+            enableButtons();
+        }
+
+        function showCongratulations() {
+            congratulationsBox.style.display = 'block';
+            disableButtons();
+        }
+
+        function disableButtons() {
+            undoButton.disabled = true;
+            restartButton.disabled = true;
+        }
+
+        function enableButtons() {
+            undoButton.disabled = false;
+            restartButton.disabled = false;
+        }
+
+        function restartGame() {
+            location.reload();
+        }
+
+        function loadNextLevel() {
+            window.location.href = 'level2.html';
+        }
+
+        function goHome() {
+            window.location.href = "index.html";
+        }
 
         toolbox.addEventListener('dragover', handleDragOver);
         dropzone.addEventListener('dragover', handleDragOver);
         dropzone.addEventListener('drop', handleDrop);
+
+        undoButton.addEventListener('click', handleUndo);
+        restartButton.addEventListener('click', handleRestart);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            shuffleToolboxBlocks(); // Shuffle blocks on page load
+        });
+
+        document.querySelectorAll('.block').forEach(block => {
+            block.addEventListener('dragstart', handleDragStart);
+            block.setAttribute('draggable', 'true');
+        });
     </script>
 </body>
 </html>
