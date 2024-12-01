@@ -3,14 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drag and Drop Interface</title>
+    <title>Drag and Drop Interface with Score</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             display: flex;
+            flex-direction: column;
             height: 100vh;
             margin: 0;
             padding: 0;
+        }
+        .container {
+            display: flex;
+            flex: 1;
         }
         #toolbox, #workspace {
             width: 50%;
@@ -38,31 +43,48 @@
             padding: 20px;
             min-height: 400px;
             border: 2px dashed #999;
+            display: flex;
+            flex-direction: column;
         }
         .dragging {
             opacity: 0.5;
         }
+        #score-box {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            font-size: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <div id="toolbox">
-        <h3>Toolbox</h3>
-        <div class="block" draggable="true">Move Forward</div>
-        <div class="block" draggable="true">Turn Left</div>
-        <div class="block" draggable="true">Turn Right</div>
-        <div class="block" draggable="true">Repeat 10 Times</div>
+    <div id="score-box">
+        Score: <span id="score">0</span>
     </div>
 
-    <div id="workspace">
-        <h3>Workspace</h3>
-        <div class="dropzone" id="dropzone">
-            <!-- Blocks will be dropped here -->
+    <div class="container">
+        <div id="toolbox">
+            <h3>Toolbox</h3>
+            <div class="block" draggable="true">Move Forward</div>
+            <div class="block" draggable="true">Turn Left</div>
+            <div class="block" draggable="true">Turn Right</div>
+            <div class="block" draggable="true">Repeat 10 Times</div>
+        </div>
+
+        <div id="workspace">
+            <h3>Workspace</h3>
+            <div class="dropzone" id="dropzone">
+                <!-- Blocks will be dropped here -->
+            </div>
         </div>
     </div>
 
     <script>
         const blocks = document.querySelectorAll('.block');
         const dropzone = document.getElementById('dropzone');
+        const scoreBox = document.getElementById('score');
+        let score = 0;
 
         blocks.forEach(block => {
             block.addEventListener('dragstart', handleDragStart);
@@ -95,7 +117,12 @@
             // Add event listener to new block
             newBlock.addEventListener('dragstart', handleDragStart);
 
+            // Append the new block to the bottom of the dropzone
             dropzone.appendChild(newBlock);
+
+            // Update the score
+            score++;
+            scoreBox.innerText = score;
         }
 
         document.addEventListener('dragend', (event) => {
