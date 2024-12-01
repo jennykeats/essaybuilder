@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drag and Drop with Undo Feature</title>
+    <title>Drag and Drop with Sequence and Undo</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -68,6 +68,9 @@
         }
         #undo-button:hover {
             background-color: #E64A19;
+        }
+        .incorrect {
+            background-color: #FF5722;
         }
     </style>
 </head>
@@ -144,16 +147,36 @@
             newBlock.addEventListener('dragstart', handleDragStart);
             dropzone.appendChild(newBlock);
 
-            // Update the user sequence
+            // Add block to user sequence
             userSequence.push({ id: blockId, value: blockValue, element: newBlock });
 
-            // Update score
-            updateScore(blockValue);
+            // Update sequence and score
+            updateSequenceAndScore();
         }
 
-        function updateScore(value) {
-            score += value;
+        function updateSequenceAndScore() {
+            // Check sequence correctness
+            const isCorrect = checkSequence();
+
+            // Update score based on correctness
+            if (isCorrect) {
+                score = userSequence.reduce((sum, block) => sum + parseInt(block.value, 10), 0);
+            } else {
+                // Penalize incorrect sequence (optional)
+                score = 0;
+            }
+
             scoreBox.innerText = score;
+        }
+
+        function checkSequence() {
+            // Compare user sequence with the correct sequence
+            for (let i = 0; i < userSequence.length; i++) {
+                if (userSequence[i].id !== correctSequence[i]) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         function handleUndo() {
@@ -164,10 +187,8 @@
                 // Remove the block from the workspace
                 lastBlock.element.remove();
 
-                // Adjust the score
-                score -= lastBlock.value;
-                score = score < 0 ? 0 : score;
-                scoreBox.innerText = score;
+                // Update sequence and score
+                updateSequenceAndScore();
             }
         }
 
