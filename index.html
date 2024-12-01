@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drag and Drop with Sequence</title>
+    <title>Drag and Drop with Undo Feature</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -56,8 +56,18 @@
             font-size: 20px;
             text-align: center;
         }
-        .incorrect {
+        #undo-button {
+            margin: 10px;
+            padding: 10px;
             background-color: #FF5722;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #undo-button:hover {
+            background-color: #E64A19;
         }
     </style>
 </head>
@@ -65,6 +75,7 @@
     <div id="score-box">
         Score: <span id="score">0</span>
     </div>
+    <button id="undo-button">Undo Last Block</button>
 
     <div class="container">
         <div id="toolbox">
@@ -87,6 +98,7 @@
         const blocks = document.querySelectorAll('.block');
         const dropzone = document.getElementById('dropzone');
         const scoreBox = document.getElementById('score');
+        const undoButton = document.getElementById('undo-button');
 
         // Define the correct sequence of block IDs
         const correctSequence = ["1", "2", "3", "4"];
@@ -133,32 +145,33 @@
             dropzone.appendChild(newBlock);
 
             // Update the user sequence
-            userSequence.push(blockId);
+            userSequence.push({ id: blockId, value: blockValue, element: newBlock });
 
-            // Check if the sequence is still correct
-            const isCorrect = checkSequence();
+            // Update score
+            updateScore(blockValue);
+        }
 
-            // Update score based on correctness
-            if (isCorrect) {
-                score += blockValue;
+        function updateScore(value) {
+            score += value;
+            scoreBox.innerText = score;
+        }
+
+        function handleUndo() {
+            if (userSequence.length > 0) {
+                // Remove the last block from the sequence
+                const lastBlock = userSequence.pop();
+
+                // Remove the block from the workspace
+                lastBlock.element.remove();
+
+                // Adjust the score
+                score -= lastBlock.value;
+                score = score < 0 ? 0 : score;
                 scoreBox.innerText = score;
-                newBlock.classList.remove('incorrect');
-            } else {
-                score -= blockValue;
-                scoreBox.innerText = score < 0 ? 0 : score;
-                newBlock.classList.add('incorrect');
             }
         }
 
-        function checkSequence() {
-            // Compare user sequence with the correct sequence
-            for (let i = 0; i < userSequence.length; i++) {
-                if (userSequence[i] !== correctSequence[i]) {
-                    return false;
-                }
-            }
-            return true;
-        }
+        undoButton.addEventListener('click', handleUndo);
 
         document.addEventListener('dragend', (event) => {
             event.target.classList.remove('dragging');
